@@ -26,6 +26,8 @@ optimizer:
 trainer:
   epochs: 3
   max_grad_norm: 1.0
+  show_progress: true
+  log_interval: 10
   exp_dir: ./experiments/straightpcf_vm_short5k_s123
 
 predict:

@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 import jittor as jt
 import numpy as np
 from jittor import nn
+from tqdm import tqdm
 
 from data.dataset import StraightPCFDataset, collate_patches
 from models.straightpcf_core import StraightPCFCore
@@ -87,6 +88,8 @@ def train_stage(cfg: Dict[str, Any], seed: int = 123) -> str:
     epochs = cfg["trainer"]["epochs"]
     lr = cfg["optimizer"]["lr"]
     max_grad_norm = cfg["trainer"].get("max_grad_norm", 1.0)
+    log_interval = cfg["trainer"].get("log_interval", 10)
+    show_progress = cfg["trainer"].get("show_progress", True)
     exp_dir = cfg["trainer"]["exp_dir"]
     os.makedirs(exp_dir, exist_ok=True)
 
@@ -102,7 +105,13 @@ def train_stage(cfg: Dict[str, Any], seed: int = 123) -> str:
         num_steps = max(1, len(dataset) // batch_size)
         t0 = time.time()
 
-        for step in range(num_steps):
+        pbar = tqdm(
+            range(num_steps),
+            desc=f"[{stage}] epoch {epoch + 1}/{epochs}",
+            disable=not show_progress,
+            leave=True,
+        )
+        for step in pbar:
             batch_list = [dataset.load_sample() for _ in range(batch_size)]
             batch_np = collate_patches(batch_list)
             batch = numpy_batch_to_jittor(batch_np)
@@ -110,18 +119,27 @@ def train_stage(cfg: Dict[str, Any], seed: int = 123) -> str:
             loss = model.compute_loss(batch)
             optimizer.step(loss)
 
-            if max_grad_norm is not None and max_grad_norm > 0:
-                pass  # Jittor clips via optimizer config if needed
-
-            epoch_loss += float(loss.item())
+            loss_val = float(loss.item())
+            epoch_loss += loss_val
             global_step += 1
+
+            if show_progress:
+                pbar.set_postfix(loss=f"{loss_val:.6f}", avg=f"{epoch_loss / (step + 1):.6f}")
+            elif (step + 1) % log_interval == 0 or step == 0 or step == num_steps - 1:
+                print(
+                    f"[{stage}] epoch {epoch + 1}/{epochs} "
+                    f"step {step + 1}/{num_steps} loss={loss_val:.6f} "
+                    f"avg={epoch_loss / (step + 1):.6f}"
+                )
 
         avg_loss = epoch_loss / num_steps
         ckpt_path = os.path.join(exp_dir, f"checkpoint_{epoch}.pkl")
         save_checkpoint(model, ckpt_path)
+        elapsed = time.time() - t0
         print(
-            f"[{stage}] epoch {epoch+1}/{epochs} loss={avg_loss:.6f} "
-            f"time={time.time()-t0:.1f}s saved={ckpt_path}"
+            f"[{stage}] epoch {epoch + 1}/{epochs} done | "
+            f"avg_loss={avg_loss:.6f} | steps={num_steps} | "
+            f"time={elapsed:.1f}s | saved={ckpt_path}"
         )
 
     final_ckpt = os.path.join(exp_dir, f"checkpoint_{epochs-1}.pkl")
