@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 from typing import List, Union
 
+from data.paths import DATALIST_SPLIT_ALIASES
+
 PathLike = Union[str, Path]
 
 
@@ -38,33 +40,41 @@ def resolve_val_clean_path(val_cache_root: PathLike, datalist_line: str) -> str:
     return os.path.join(str(val_cache_root), "clean", datalist_line, "clean.npy")
 
 
+def _candidate_paths(root: Path, stem: str) -> List[Path]:
+    return [
+        root / f"{stem}.txt",
+        root / stem,
+        root / stem / f"{stem}.txt",
+    ]
+
+
 def find_datalist_file(datalist_dir: PathLike, split: str) -> str:
     """Find datalist file for a split.
 
-    Supported layouts:
-      - datalist/train.txt              (flat)
-      - datalist/train/                 (file named after split)
-      - datalist/train/<any>.txt        (directory with txt files)
+    Supported layouts (examples for split=train):
+      - datalist/train.txt
+      - datalist/validate.txt   (alias for validation)
+      - datalist/train/
+      - datalist/train/*.txt
     """
     root = Path(datalist_dir)
+    stems = DATALIST_SPLIT_ALIASES.get(split, [split])
+    tried: List[str] = []
 
-    # Flat: datalist/train.txt
-    flat = root / f"{split}.txt"
-    if flat.is_file():
-        return str(flat)
-
-    # datalist/train as a file (unusual but supported)
-    direct = root / split
-    if direct.is_file():
-        return str(direct)
-
-    # datalist/train/*.txt
-    if direct.is_dir():
-        candidates = sorted(direct.glob("*.txt"))
-        if candidates:
-            return str(candidates[0])
+    for stem in stems:
+        for path in _candidate_paths(root, stem):
+            tried.append(str(path))
+            if path.is_file():
+                return str(path)
+        # datalist/<stem>/*.txt directory
+        stem_dir = root / stem
+        if stem_dir.is_dir():
+            candidates = sorted(stem_dir.glob("*.txt"))
+            if candidates:
+                return str(candidates[0])
+            tried.append(str(stem_dir / "*.txt"))
 
     raise FileNotFoundError(
         f"No datalist found for split '{split}' under {datalist_dir}. "
-        f"Expected one of: {flat}, {direct}, or {direct}/*.txt"
+        f"Tried: {', '.join(tried)}"
     )

@@ -22,7 +22,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_root", default="./dataset_clean")
     parser.add_argument("--datalist_dir", default="./datalist")
-    parser.add_argument("--split", default="validation")
+    parser.add_argument("--split", default="validate", help="datalist split: train/validate/test")
     parser.add_argument("--val_cache_root", default="./val_cache")
     parser.add_argument("--num_points", type=int, default=50000)
     parser.add_argument("--seed", type=int, default=20260613)

@@ -38,7 +38,7 @@ def main():
         metrics = run_validation(
             cfg=cfg,
             ckpt_path=args.checkpoint or cfg["checkpoint"],
-            list_file=cfg.get("list_file") or find_datalist_file(cfg.get("datalist_dir", "./datalist"), "validation"),
+            list_file=cfg.get("list_file") or find_datalist_file(cfg.get("datalist_dir", "./datalist"), "validate"),
             val_cache_root=cfg.get("val_cache_root", "./val_cache"),
             mesh_dir=cfg.get("mesh_dir", "./dataset_clean"),
             pred_dir=cfg.get("pred_dir", "./outputs/validation_predictions"),

@@ -55,20 +55,20 @@ def main():
     args = parser.parse_args()
 
     splits = {}
-    for split in ("train", "validation", "test"):
+    for split in ("train", "validate", "test"):
         path = find_datalist_file(args.datalist_dir, split)
         splits[split] = read_datalist(path)
         print(f"{split}: {len(splits[split])} samples from {path}")
 
     train_set = set(splits["train"])
-    val_set = set(splits["validation"])
+    val_set = set(splits["validate"])
     test_set = set(splits["test"])
 
     overlap_tv = train_set & val_set
     overlap_vt = val_set & test_set
     overlap_tt = train_set & test_set
-    print(f"train∩validation: {len(overlap_tv)}")
-    print(f"validation∩test: {len(overlap_vt)}")
+    print(f"train∩validate: {len(overlap_tv)}")
+    print(f"validate∩test: {len(overlap_vt)}")
     print(f"train∩test: {len(overlap_tt)}")
 
     for split, lines in splits.items():
@@ -89,10 +89,10 @@ def main():
 
     report = {
         "train": len(splits["train"]),
-        "validation": len(splits["validation"]),
+        "validate": len(splits["validate"]),
         "test": len(splits["test"]),
-        "overlap_train_validation": len(overlap_tv),
-        "overlap_validation_test": len(overlap_vt),
+        "overlap_train_validate": len(overlap_tv),
+        "overlap_validate_test": len(overlap_vt),
         "overlap_train_test": len(overlap_tt),
     }
     with open(out_dir / "audit_report.json", "w", encoding="utf-8") as f:
