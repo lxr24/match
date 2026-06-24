@@ -1,0 +1,31 @@
+# Shared model defaults
+model: &model
+  frame_knn: 32
+  feat_embedding_dim: 256
+  decoder_hidden_dim: 64
+  dsm_sigma: 0.01
+  num_train_points: 1000
+  num_modules: 2
+  distance_embedding_dim: 128
+  distance_hidden_dim: 64
+
+data: &data
+  input_dataset_dir: ./dataset_clean
+  datalist: ./datalist/train_strat5k_seed123.txt
+  use_prob: true
+  num_files: 5000
+  num_samples: 32768
+  num_vertex_samples: 1024
+  num_patches: 4
+  patch_size: 1000
+  batch_size: 4
+
+predict: &predict
+  predict_patch_size: 1000
+  predict_seed_k: 6
+  predict_seed_k_alpha: 1
+  predict_outer_steps: 1
+  predict_inner_steps: 2
+  predict_step_scale: 1.0
+  predict_delta_scale: 1.0
+  predict_aggregation: best
