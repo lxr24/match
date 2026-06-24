@@ -1,0 +1,27 @@
+mode: predict
+checkpoint: ./experiments/straightpcf_joint_short5k_s123/checkpoint_1.pkl
+
+model:
+  frame_knn: 32
+  feat_embedding_dim: 256
+  decoder_hidden_dim: 64
+  dsm_sigma: 0.01
+  num_train_points: 1000
+  num_modules: 2
+  distance_embedding_dim: 128
+  distance_hidden_dim: 64
+  distance_ratio_loss_weight: 1.0
+  distance_final_loss_weight: 200.0
+  use_coverage_loss: true
+  use_mesh_loss: true
+  coverage_loss_weight: 75.0
+  coverage_pred_weight: 0.25
+  coverage_clean_weight: 0.75
+  coverage_num_points: 512
+  mesh_loss_weight: 0.05
+
+predict:
+  predict_patch_size: 1000
+  predict_seed_k: 6
+  predict_inner_steps: 2
+  predict_step_scale: 1.0
