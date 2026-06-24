@@ -7,9 +7,9 @@
 ```text
 dataset_clean/shapenet/<synset>/<model_id>/models/model_normalized.obj
 test_noisy/shapenet/<synset>/<model_id>/noisy.npy
-datalist/train/      # 15733 行
-datalist/validation/ # 100 行
-datalist/test/       # 200 行
+datalist/train.txt           # 15733 行（也支持 datalist/train/train.txt）
+datalist/validation.txt      # 100 行
+datalist/test.txt            # 200 行
 ```
 
 datalist 每行格式：`shapenet/<synset_id>/<model_id>`

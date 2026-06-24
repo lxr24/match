@@ -39,14 +39,32 @@ def resolve_val_clean_path(val_cache_root: PathLike, datalist_line: str) -> str:
 
 
 def find_datalist_file(datalist_dir: PathLike, split: str) -> str:
-    """Find datalist file under datalist/<split>/ directory."""
-    base = Path(datalist_dir) / split
-    if base.is_file():
-        return str(base)
-    if base.is_dir():
-        candidates = sorted(base.glob("*.txt"))
-        if len(candidates) == 1:
-            return str(candidates[0])
+    """Find datalist file for a split.
+
+    Supported layouts:
+      - datalist/train.txt              (flat)
+      - datalist/train/                 (file named after split)
+      - datalist/train/<any>.txt        (directory with txt files)
+    """
+    root = Path(datalist_dir)
+
+    # Flat: datalist/train.txt
+    flat = root / f"{split}.txt"
+    if flat.is_file():
+        return str(flat)
+
+    # datalist/train as a file (unusual but supported)
+    direct = root / split
+    if direct.is_file():
+        return str(direct)
+
+    # datalist/train/*.txt
+    if direct.is_dir():
+        candidates = sorted(direct.glob("*.txt"))
         if candidates:
             return str(candidates[0])
-    raise FileNotFoundError(f"No datalist found for split '{split}' under {datalist_dir}")
+
+    raise FileNotFoundError(
+        f"No datalist found for split '{split}' under {datalist_dir}. "
+        f"Expected one of: {flat}, {direct}, or {direct}/*.txt"
+    )
